@@ -9,26 +9,26 @@ namespace AL_Test
         [Fact]
         public void Test1()
         {
-            Assert.Equal(0, new LengthHelper().findLength(""));
+            Assert.Equal(0, new LengthHelper().FindLength(""));
         }
 
         [Fact]
         public void Test2()
         {
-            Assert.Equal(3, new LengthHelper().findLength("123"));
+            Assert.Equal(3, new LengthHelper().FindLength("123"));
 
         }
 
         [Fact]
         public void Test3()
         {
-            Assert.Equal(12, new LengthHelper().findLength("123456789010"));
+            Assert.Equal(12, new LengthHelper().FindLength("123456789010"));
         }
 
         [Fact]
         public void Test4()
         {
-            Assert.Throws<NullReferenceException>(() => new LengthHelper().findLength(null));
+            Assert.Throws<NullReferenceException>(() => new LengthHelper().FindLength(null));
         }
     }
 }

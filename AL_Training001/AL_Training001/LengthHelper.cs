@@ -4,7 +4,7 @@ namespace AL_Training001
 {
     public class LengthHelper
     {       
-        public int findLength(string input)
+        public int FindLength(string input)
         {
             return input.Length;
         }
