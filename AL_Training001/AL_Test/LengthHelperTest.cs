@@ -4,6 +4,8 @@ using AL_Training001;
 
 namespace AL_Test
 {
+    //Create a unit test project using Xunit
+    //write test cases to find length of string for "", "123", "123456789010", NULL
     public class LengthHelperTest
     {
         [Fact]
