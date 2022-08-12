@@ -9,7 +9,7 @@ namespace AL_Training002
             //Study Case 1:
             //Static class allows only static methods.
             //Static class initilize at first loaded
-
+            Console.WriteLine("---Static Class---");
             Console.WriteLine(StaticConstructor.value);
             Console.WriteLine(StaticConstructor.GetValue());
 
@@ -23,7 +23,7 @@ namespace AL_Training002
             counterObj.Increment(); //1
             counterObj.Increment(); //2
             counterObj.Decrement(); //1
-
+            Console.WriteLine("---Singleton Class---");
             Console.WriteLine(counterObj.Count);
         }
     }
