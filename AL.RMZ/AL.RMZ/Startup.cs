@@ -47,7 +47,8 @@ namespace AL.RMZ
                 });
             });
 
-            services.AddDbContext<RMZ.Data.RMZAPIDbContext>(options => options.UseInMemoryDatabase("RMZDb"));
+           // services.AddDbContext<RMZ.Data.RMZAPIDbContext>(options => options.UseInMemoryDatabase("RMZDb"));
+            services.AddDbContext<RMZ.Data.RMZAPIDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("RMZAPIConnectionString")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

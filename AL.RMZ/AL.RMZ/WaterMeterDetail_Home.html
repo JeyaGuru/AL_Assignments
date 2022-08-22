@@ -1,0 +1,378 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" />
+    <style>
+        table {
+            padding-top: 2%;
+            padding-left: 5%;
+            padding-right: 5%;
+            padding-bottom: 5%;
+            height: 100%;
+            border-left: 120px solid #808080;
+            border-right: 120px solid #808080;
+        }
+
+        td {
+            width: 75px
+        }
+
+        th {
+            height: 25px;
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h3>API Testing: WaterMeter</h3>
+    <h4>Search : City, Facility, Building, Floor, Zone & Date range</h4>
+    <hr />
+    <br />
+    <div class="row">
+        <div class="col-lg-3"></div>
+        <div class="col-lg-6">
+
+            <div class="form-group">
+                <label class="col-md-4 control-label">City Name</label>
+                <div class="col-md-6">
+                    <select class="form-control" id="ddlCity"></select><br />
+                </div>
+            </div>
+            <br />
+            <div class="form-group">
+                <label class="col-md-4 control-label">Facility Name</label>
+                <div class="col-md-6">
+                    <select class="form-control" id="ddlFacility"></select>
+                    <br />
+
+                </div>
+            </div>
+            <br />
+
+            <div class="form-group">
+                <label class="col-md-4 control-label">Building Name</label>
+                <div class="col-md-6">
+                    <select class="form-control" id="ddlBuilding"></select><br />
+                </div>
+            </div>
+            <br />
+            <div class="form-group">
+                <label class="col-md-4 control-label">Floor Name</label>
+                <div class="col-md-6">
+                    <select class="form-control" id="ddlFloor"></select>
+                    <br />
+
+                </div>
+            </div>
+            <br />
+            <div class="form-group">
+                <label class="col-md-4 control-label">Zone Name</label>
+                <div class="col-md-6">
+                    <select class="form-control" id="ddlZone"></select><br />
+                </div>
+            </div>
+            <br />
+            <div class="form-group">
+                <label class="col-md-4 control-label">Water Meter</label>
+                <div class="col-md-6">
+                    <select class="form-control" id="ddlWaterMeter"></select>
+                    <br />
+
+                </div>
+            </div>
+            <br />
+            <div class="form-group">
+                <label class="col-md-4 control-label">Reading Start Date</label>
+                <div class="col-md-6">
+                    <input type="Date" class="form-control" id="ddlReadingStartDate">
+                    <br />
+
+                </div>
+            </div>
+            <br />
+            <div class="form-group">
+                <label class="col-md-4 control-label">Reading End Date</label>
+                <div class="col-md-6">
+                    <input type="Date" class="form-control" id="ddlReadingEndDate">
+                    <br />
+
+                </div>
+            </div>
+            <br />
+
+        </div>
+        <div class="col-lg-3"></div>
+    </div>
+    <div class="container">
+        <br />
+        <div style="width:90%; margin:0 auto;">
+            <h5> Water Meter Detail(s) :</h5>
+            <table id="example" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Facility Name</th>
+                        <th>Building Name</th>
+                        <th>Zone Name</th>
+                        <th>Water Meter Detail Id</th>
+                        <th>Water Meter Number</th>
+                        <th>Reading Date</th>
+                        <th>Start Unit</th>
+                        <th>End Unit</th>
+                        <th>Total Units</th>
+                    </tr>
+                </thead>
+            </table>
+            <table id="example2" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
+                <thead id="meterTable">
+
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <script>
+
+        $(document).ready(function () {
+
+            document.getElementById("ddlReadingStartDate").val = null;
+            document.getElementById("ddlReadingEndDate").val = null;
+            var ddlCity = $('#ddlCity');
+            ddlCity.append($("<option></option>").val('').html('Please Select City'));
+            $.ajax({
+                url: 'https://localhost:44325/api/city',
+                type: 'GET',
+                dataType: 'json',
+                success: function (d) {
+                    $.each(d, function (i, city) {
+                        ddlCity.append($("<option></option>").val(city.id).html(city.name));
+                    });
+                },
+                error: function () {
+                    alert('Error!');
+                }
+            });
+
+            $("#ddlCity").change(function () {
+                var CityId = parseInt($(this).val());
+
+                if (!isNaN(CityId)) {
+                    var ddlFacility = $('#ddlFacility');
+                    ddlFacility.empty();
+                    ddlFacility.append($("<option></option>").val('').html('Please wait ...'));
+
+                    $.ajax({
+                        url: 'https://localhost:44325/api/Facility/' + CityId,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (d) {
+                            ddlFacility.empty();
+                            ddlFacility.append($("<option></option>").val('').html('Select Facility'));
+                            $.each(d, function (i, facility) {
+                                ddlFacility.append($("<option></option>").val(facility.id).html(facility.name));
+                            });
+                        },
+                        error: function () {
+                            alert('Error!');
+                        }
+                    });
+                }
+            });
+
+            $("#ddlFacility").change(function () {
+                var FacilityId = parseInt($(this).val());
+
+                if (!isNaN(FacilityId)) {
+                    var ddlBuilding = $('#ddlBuilding');
+                    ddlBuilding.empty();
+                    ddlBuilding.append($("<option></option>").val('').html('Please wait ...'));
+
+                    $.ajax({
+                        url: 'https://localhost:44325/api/Building/' + FacilityId,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (d) {
+                            ddlBuilding.empty();
+                            ddlBuilding.append($("<option></option>").val('').html('Select Building'));
+                            $.each(d, function (i, building) {
+                                ddlBuilding.append($("<option></option>").val(building.id).html(building.name));
+                            });
+                        },
+                        error: function () {
+                            alert('Error!');
+                        }
+                    });
+
+                    PopulateTable();
+                }
+            });
+
+
+            $("#ddlBuilding").change(function () {
+                var BuildingId = parseInt($(this).val());
+
+                if (!isNaN(BuildingId)) {
+                    var ddlFloor = $('#ddlFloor');
+                    ddlFloor.empty();
+                    ddlFloor.append($("<option></option>").val('').html('Please wait ...'));
+
+                    $.ajax({
+                        url: 'https://localhost:44325/api/Floor/' + BuildingId,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (d) {
+                            ddlFloor.empty();
+                            ddlFloor.append($("<option></option>").val('').html('Select Floor'));
+                            $.each(d, function (i, floor) {
+                                ddlFloor.append($("<option></option>").val(floor.id).html(floor.name));
+                            });
+                        },
+                        error: function () {
+                            alert('Error!');
+                        }
+                    });
+                    PopulateTable();
+                }
+            });
+
+            $("#ddlFloor").change(function () {
+                var FloorId = parseInt($(this).val());
+
+                if (!isNaN(FloorId)) {
+                    var ddlZone = $('#ddlZone');
+                    ddlZone.empty();
+                    ddlZone.append($("<option></option>").val('').html('Please wait ...'));
+
+                    $.ajax({
+                        url: 'https://localhost:44325/api/Zone/' + FloorId,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (d) {
+                            ddlZone.empty();
+                            ddlZone.append($("<option></option>").val('').html('Select Zone'));
+                            $.each(d, function (i, zone) {
+                                ddlZone.append($("<option></option>").val(zone.id).html(zone.name));
+                            });
+                        },
+                        error: function () {
+                            alert('Error!');
+                        }
+                    });
+                }
+            });
+
+            $("#ddlZone").change(function () {
+                var ZoneId = parseInt($(this).val());
+
+                if (!isNaN(ZoneId)) {
+                    var ddlWaterMeter = $('#ddlWaterMeter');
+                    ddlWaterMeter.empty();
+                    ddlWaterMeter.append($("<option></option>").val('').html('Please wait ...'));
+
+                    $.ajax({
+                        url: 'https://localhost:44325/api/WaterMeter/' + ZoneId,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (d) {
+                            ddlWaterMeter.empty();
+                            ddlWaterMeter.append($("<option></option>").val('').html('Select WaterMeter'));
+                            $.each(d, function (i, Watermeter) {
+                                ddlWaterMeter.append($("<option></option>").val(Watermeter.id).html(Watermeter.number));
+                            });
+                        },
+                        error: function () {
+                            alert('Error!');
+                        }
+                    });
+                    PopulateTable();
+                }
+            });
+
+            $("#ddlZone").change(function () {
+                var ZoneId = parseInt($(this).val());
+
+                if (!isNaN(ZoneId)) {
+                    var ddlWaterMeter = $('#ddlWaterMeter');
+                    ddlWaterMeter.empty();
+                    ddlWaterMeter.append($("<option></option>").val('').html('Please wait ...'));
+
+                    $.ajax({
+                        url: 'https://localhost:44325/api/WaterMeter/' + ZoneId,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (d) {
+                            ddlWaterMeter.empty();
+                            ddlWaterMeter.append($("<option></option>").val('').html('Select WaterMeter'));
+                            $.each(d, function (i, Watermeter) {
+                                ddlWaterMeter.append($("<option></option>").val(Watermeter.id).html(Watermeter.number));
+                            });
+                        },
+                        error: function () {
+                            alert('Error!');
+                        }
+                    });
+                }
+                PopulateTable();
+            });
+
+
+            function PopulateTable() {
+
+                var FacilityId = document.getElementById("ddlFacility").value;
+                var BuildingId = document.getElementById("ddlBuilding").value;
+                var ZoneId = document.getElementById("ddlZone").value;
+                var WaterMeterId = document.getElementById("ddlWaterMeter").value;
+                var ReadingStartDate = document.getElementById("ddlReadingStartDate").value;
+                var ReadingEndDate = document.getElementById("ddlReadingEndDate").value;
+
+                (function () {
+                    var ddlmetertable = $("#meterTable");
+                    $.ajax({
+                        url: 'https://localhost:44325/api/WaterMeterDetail/Search/',
+                        type: 'GET',
+                        dataType: 'json',
+                        data: { facilityid: FacilityId, buildingid: BuildingId, zoneid: ZoneId, watermeterid: WaterMeterId, readingstartdate: ReadingStartDate, readingenddate: ReadingEndDate },
+                        success: function (d) {
+                            ddlmetertable.empty();
+
+                            $.each(d, function (i, detail) {
+                                var row = $('<tr>');
+                                row.append($('<th>' + detail.facilityname + '</th>' + '<th>' + detail.buildingname + '<th>' + detail.zonename + '</th>' + '</th>' + '<th>' + detail.id + '</th>' + '<th>' + detail.watermeter + '</th>' + '<th>' + detail.readingdate + '</th>' + '<th>' + detail.startunit + '</th>' + '<th>' + detail.endunit + '</th>' + '<th>' + detail.totalunits + '</th>'));
+                                row.append($('</tr>'));
+                                $('#meterTable').append(row);
+                            });
+
+                        },
+                        error: function () {
+                            alert('Error!');
+                        }
+                    });
+                })();
+            }
+
+            $("#ddlWaterMeter").change(function () {
+                var ElectricityMeterId = parseInt($(this).val());
+
+                if (!isNaN(ElectricityMeterId)) {
+                    var ddlmetertable = $('#meterTable');
+                    ddlmetertable.empty();
+                    PopulateTable();
+
+                }
+            });
+            $("#ddlReadingStartDate").change(function () {
+                PopulateTable();
+            });
+            $("#ddlReadingEndDate").change(function () {
+                PopulateTable();
+            });
+
+
+        });
+    </script>
+
+
+</body>
+
+</html> 

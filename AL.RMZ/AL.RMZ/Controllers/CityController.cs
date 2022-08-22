@@ -49,7 +49,9 @@ namespace AL.RMZ.Controllers
         {
             City city = new City()
             {
-                Name = addCityRequest.Name
+                Name = addCityRequest.Name,
+                CreatedById = 1
+
             };
             await dBContext.Cities.AddAsync(city);
             await dBContext.SaveChangesAsync();

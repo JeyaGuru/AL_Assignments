@@ -8,11 +8,6 @@ namespace AL.RMZ.Models
     public class BuildingRequest
     {
         public string Name { get; set; }
-
-        //public string CityName { get; set; }
-
         public int FacilityId { get; set; }
-
-        //public string FacilityName { get; set; }
     }
 }

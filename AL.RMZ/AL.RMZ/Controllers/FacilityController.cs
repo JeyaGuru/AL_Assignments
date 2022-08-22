@@ -76,7 +76,8 @@ namespace AL.RMZ.Controllers
             var Facility = new Models.Facility
             {
                 Name = addFacilityRequest.Name,
-                CityId = addFacilityRequest.CityId
+                CityId = addFacilityRequest.CityId,
+                CreatedById = 1
             };
             await dBContext.Facilities.AddAsync(Facility);
             await dBContext.SaveChangesAsync();

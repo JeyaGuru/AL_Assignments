@@ -21,13 +21,16 @@ namespace AL.RMZ.Models
         [ForeignKey("FacilityId")]
         public Facility Facility { get; set; }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CreatedDate { get; set; }
 
         public int CreatedById { get; set; }
 
-        public DateTime UpdatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
 
-        public int UpdatedById { get; set; }
+        public int? UpdatedById { get; set; }
+        public Building()
+        {
+            CreatedDate = DateTime.Now;
+        }
     }
 }

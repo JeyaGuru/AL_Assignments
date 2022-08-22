@@ -76,7 +76,8 @@ namespace AL.RMZ.Controllers
             var Zone = new Models.Zone
             {
                 Name = addZoneRequest.Name,
-                FloorId = addZoneRequest.FloorId
+                FloorId = addZoneRequest.FloorId,
+                CreatedById = 1
             };
             await dBContext.Zones.AddAsync(Zone);
             await dBContext.SaveChangesAsync();

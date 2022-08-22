@@ -76,7 +76,8 @@ namespace AL.RMZ.Controllers
             var electricityMeter = new Models.ElectricityMeter
             {
                 Number = addElectricityMeterRequest.Number,                
-                ZoneId = addElectricityMeterRequest.ZoneId
+                ZoneId = addElectricityMeterRequest.ZoneId,
+                CreatedById = 1
             };
             await dBContext.ElectricityMeters.AddAsync(electricityMeter);
             await dBContext.SaveChangesAsync();

@@ -25,7 +25,8 @@ namespace AL.RMZ.Controllers
             var building = new Models.Building
             {
                 Name = addBuildingRequest.Name,
-                FacilityId = addBuildingRequest.FacilityId
+                FacilityId = addBuildingRequest.FacilityId,
+                CreatedById=1
                 //FacilityId = dBContext.Facilities.Where(x=>x.Name == addBuildingRequest.FacilityName).FirstOrDefault().Id              
 
             };

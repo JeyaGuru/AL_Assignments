@@ -12,15 +12,20 @@ namespace AL.RMZ.Models
         [Key]
         public int Id { get; set; }
 
+        [Required]
         public string Name { get; set; }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CreatedDate { get; set; }
 
         public int CreatedById { get; set; }
 
-        public DateTime UpdatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
 
-        public int UpdatedById { get; set; }
+        public int? UpdatedById { get; set; }
+
+        public City()
+        {
+            CreatedDate = DateTime.Now;
+        }
     }
 }

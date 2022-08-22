@@ -22,9 +22,8 @@ namespace AL.RMZ.Models
 
         public int EndReading { get; set; }
 
-        public int TotalUnits { get; set; }
-
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public int TotalUnits { get { return EndReading - StartReading; } set { } }
+      
         public DateTime CreatedDate { get; set; }
 
         public int CreatedById { get; set; }
@@ -32,6 +31,12 @@ namespace AL.RMZ.Models
         public DateTime UpdatedDate { get; set; }
 
         public int UpdatedById { get; set; }
+
+        public ElectricityMeterDetail()
+        {
+            CreatedDate = DateTime.Now;
+
+        }
 
     }
 }

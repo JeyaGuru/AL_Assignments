@@ -9,23 +9,28 @@ namespace AL.RMZ.Models
 {
     public class Zone
     {
+        [Key]
         public int Id { get; set; }
         [Required]
         public string Name { get; set; }
-       
+
         [Required]
         public int FloorId { get; set; }
 
         [ForeignKey("FloorId")]
         public Floor Floor { get; set; }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CreatedDate { get; set; }
 
         public int CreatedById { get; set; }
 
-        public DateTime UpdatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
 
-        public int UpdatedById { get; set; }
+        public int? UpdatedById { get; set; }
+
+        public Zone()
+        {
+            CreatedDate = DateTime.Now;
+        }
     }
 }

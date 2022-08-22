@@ -34,7 +34,7 @@ namespace AL.RMZ.Controllers
             return NotFound();
         }
 
-        [HttpGet]      
+        [HttpGet]
         public async Task<IActionResult> GetWaterMeters(int? Id)
         {
             if (Id == null)
@@ -75,15 +75,8 @@ namespace AL.RMZ.Controllers
             var WaterMeter = new Models.WaterMeter
             {
                 Number = addWaterMeterRequest.Number,
-                //ReadingDate = addWaterMeterRequest.ReadingDate,
-                //StartReading = addWaterMeterRequest.StartReading,
-                //EndReading = addWaterMeterRequest.EndReading,
-                //CityId = addWaterMeterRequest.CityId,
-                //FacilityId = addWaterMeterRequest.FacilityId,
-                //BuildingId = addWaterMeterRequest.BuildingId,
-                //FloorId = addWaterMeterRequest.FloorId,
-                //ZoneId = dBContext.Zones.Where(x => x.Name == addWaterMeterRequest.ZoneName).FirstOrDefault().Id
-                ZoneId = addWaterMeterRequest.ZoneId
+                ZoneId = addWaterMeterRequest.ZoneId,
+                CreatedById = 1
             };
             await dBContext.WaterMeters.AddAsync(WaterMeter);
             await dBContext.SaveChangesAsync();

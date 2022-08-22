@@ -7,16 +7,14 @@ using System.Threading.Tasks;
 
 namespace AL.RMZ.Models
 {
-    public class ElectricityMeterDetailRequest
+    public class WaterMeterDetailRequest
     {
-        public int ElectricityMeterId { get; set; }
+        public int WaterMeterId { get; set; }
         public DateTime ReadingDate { get; set; }
 
         public int StartReading { get; set; }
 
         public int EndReading { get; set; }
-
-        public int TotalUnits { get; set; }
 
         public DateTime CreatedDate { get; set; }
 

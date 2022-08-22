@@ -43,7 +43,7 @@ namespace AL.RMZ.Controllers
         }
 
         [HttpGet]
-        [Route("{buildingId:int}")]
+        [Route("{buildingid:int}")]
         public async Task<IActionResult> GetFloorsByBuildingId(int? buildingid)
         {
             if (buildingid == null)
@@ -75,7 +75,8 @@ namespace AL.RMZ.Controllers
             var Floor = new Models.Floor
             {
                 BuildingId = addFloorRequest.BuildingId,
-                Name = addFloorRequest.Name
+                Name = addFloorRequest.Name,
+                CreatedById = 1
             };
             await dBContext.Floors.AddAsync(Floor);
             await dBContext.SaveChangesAsync();
