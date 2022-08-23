@@ -38,7 +38,7 @@ namespace AL.RMZ.Controllers
 
         [HttpGet]
         [Route("Search/")]
-        public async Task<IActionResult> GetElectricityMeterDetail(int? facilityid, int? buildingid, int? zoneid, int? electricitymeterid, DateTime? readingstartdate, DateTime? readingenddate)
+        public async Task<IActionResult> GetElectricityMeterDetail(int? facilityid, int? buildingid, int? floorid, int? zoneid, int? electricitymeterid, DateTime? readingstartdate, DateTime? readingenddate)
         {
 
             return Ok(await
@@ -48,7 +48,7 @@ namespace AL.RMZ.Controllers
                  join zone in dbContext.Zones on floor.Id equals zone.FloorId
                  join electricityMeter in dbContext.ElectricityMeters on zone.Id equals electricityMeter.ZoneId
                  join electricityMeterDetail in dbContext.ElectricityMeterDetails on electricityMeter.Id equals electricityMeterDetail.ElectricityMeterId
-                 where ((readingstartdate == null || electricityMeterDetail.ReadingDate.Date >= readingstartdate.Value.Date) && (readingenddate == null || electricityMeterDetail.ReadingDate.Date <= readingenddate.Value.Date) && (electricitymeterid == default || electricityMeterDetail.ElectricityMeterId == electricitymeterid) && (zoneid == default || zone.Id == zoneid) && (buildingid == default || building.Id == buildingid) && (facilityid == default || facility.Id == facilityid))
+                 where ((readingstartdate == null || electricityMeterDetail.ReadingDate.Date >= readingstartdate.Value.Date) && (readingenddate == null || electricityMeterDetail.ReadingDate.Date <= readingenddate.Value.Date) && (electricitymeterid == default || electricityMeterDetail.ElectricityMeterId == electricitymeterid) && (zoneid == default || zone.Id == zoneid) && (floorid == default || floor.Id == floorid) && (buildingid == default || building.Id == buildingid) && (facilityid == default || facility.Id == facilityid))
                  select new DisplayElectricityMeterDetail { electricitymeter = electricityMeter.Number, buildingname = building.Name, facilityname = facility.Name, startunit = electricityMeterDetail.StartReading, endunit = electricityMeterDetail.EndReading, zonename = zone.Name, readingdate = electricityMeterDetail.ReadingDate, totalunits = electricityMeterDetail.TotalUnits, id = electricityMeterDetail.Id }).ToListAsync());
         }
 

@@ -156,7 +156,13 @@
 
             $("#ddlCity").change(function () {
                 var CityId = parseInt($(this).val());
-
+                $('#ddlFacility').empty();
+                $('#ddlBuilding').empty();
+                $('#ddlFloor').empty();
+                $('#ddlZone').empty();
+                $('#ddlElectricityMeter').empty();
+                $('#ddlWaterMeter').empty();
+                $('#meterTable').empty();
                 if (!isNaN(CityId)) {
                     var ddlFacility = $('#ddlFacility');
                     ddlFacility.empty();
@@ -178,11 +184,18 @@
                         }
                     });
                 }
+                PopulateTable();
             });
 
             $("#ddlFacility").change(function () {
                 var FacilityId = parseInt($(this).val());
 
+                $('#ddlBuilding').empty();
+                $('#ddlFloor').empty();
+                $('#ddlZone').empty();
+                $('#ddlElectricityMeter').empty();
+                $('#ddlWaterMeter').empty();
+                $('#meterTable').empty();
                 if (!isNaN(FacilityId)) {
                     var ddlBuilding = $('#ddlBuilding');
                     ddlBuilding.empty();
@@ -204,14 +217,20 @@
                         }
                     });
 
-                    PopulateTable();
+
                 }
+                PopulateTable();
             });
 
 
             $("#ddlBuilding").change(function () {
                 var BuildingId = parseInt($(this).val());
 
+                $('#ddlFloor').empty();
+                $('#ddlZone').empty();
+                $('#ddlElectricityMeter').empty();
+                $('#ddlWaterMeter').empty();
+                $('#meterTable').empty();
                 if (!isNaN(BuildingId)) {
                     var ddlFloor = $('#ddlFloor');
                     ddlFloor.empty();
@@ -232,13 +251,18 @@
                             alert('Error!');
                         }
                     });
-                    PopulateTable();
+
                 }
+                PopulateTable();
             });
 
             $("#ddlFloor").change(function () {
                 var FloorId = parseInt($(this).val());
 
+                $('#ddlZone').empty();
+                $('#ddlElectricityMeter').empty();
+                $('#ddlWaterMeter').empty();
+                $('#meterTable').empty();
                 if (!isNaN(FloorId)) {
                     var ddlZone = $('#ddlZone');
                     ddlZone.empty();
@@ -260,67 +284,45 @@
                         }
                     });
                 }
-            });
-
-            $("#ddlZone").change(function () {
-                var ZoneId = parseInt($(this).val());
-
-                if (!isNaN(ZoneId)) {
-                    var ddlWaterMeter = $('#ddlWaterMeter');
-                    ddlWaterMeter.empty();
-                    ddlWaterMeter.append($("<option></option>").val('').html('Please wait ...'));
-
-                    $.ajax({
-                        url: 'https://localhost:44325/api/WaterMeter/' + ZoneId,
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function (d) {
-                            ddlWaterMeter.empty();
-                            ddlWaterMeter.append($("<option></option>").val('').html('Select WaterMeter'));
-                            $.each(d, function (i, Watermeter) {
-                                ddlWaterMeter.append($("<option></option>").val(Watermeter.id).html(Watermeter.number));
-                            });
-                        },
-                        error: function () {
-                            alert('Error!');
-                        }
-                    });
-                    PopulateTable();
-                }
-            });
-
-            $("#ddlZone").change(function () {
-                var ZoneId = parseInt($(this).val());
-
-                if (!isNaN(ZoneId)) {
-                    var ddlWaterMeter = $('#ddlWaterMeter');
-                    ddlWaterMeter.empty();
-                    ddlWaterMeter.append($("<option></option>").val('').html('Please wait ...'));
-
-                    $.ajax({
-                        url: 'https://localhost:44325/api/WaterMeter/' + ZoneId,
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function (d) {
-                            ddlWaterMeter.empty();
-                            ddlWaterMeter.append($("<option></option>").val('').html('Select WaterMeter'));
-                            $.each(d, function (i, Watermeter) {
-                                ddlWaterMeter.append($("<option></option>").val(Watermeter.id).html(Watermeter.number));
-                            });
-                        },
-                        error: function () {
-                            alert('Error!');
-                        }
-                    });
-                }
                 PopulateTable();
             });
 
+            $("#ddlZone").change(function () {
+                var ZoneId = parseInt($(this).val());
+
+                $('#ddlElectricityMeter').empty();
+                $('#ddlWaterMeter').empty();
+                $('#meterTable').empty();
+                if (!isNaN(ZoneId)) {
+                    var ddlWaterMeter = $('#ddlWaterMeter');
+                    ddlWaterMeter.empty();
+                    ddlWaterMeter.append($("<option></option>").val('').html('Please wait ...'));
+
+                    $.ajax({
+                        url: 'https://localhost:44325/api/WaterMeter/' + ZoneId,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (d) {
+                            ddlWaterMeter.empty();
+                            ddlWaterMeter.append($("<option></option>").val('').html('Select WaterMeter'));
+                            $.each(d, function (i, Watermeter) {
+                                ddlWaterMeter.append($("<option></option>").val(Watermeter.id).html(Watermeter.number));
+                            });
+                        },
+                        error: function () {
+                            alert('Error!');
+                        }
+                    });
+
+                }
+                PopulateTable();
+            });
 
             function PopulateTable() {
 
                 var FacilityId = document.getElementById("ddlFacility").value;
                 var BuildingId = document.getElementById("ddlBuilding").value;
+                var FloorId = document.getElementById("ddlFloor").value;
                 var ZoneId = document.getElementById("ddlZone").value;
                 var WaterMeterId = document.getElementById("ddlWaterMeter").value;
                 var ReadingStartDate = document.getElementById("ddlReadingStartDate").value;
@@ -332,7 +334,7 @@
                         url: 'https://localhost:44325/api/WaterMeterDetail/Search/',
                         type: 'GET',
                         dataType: 'json',
-                        data: { facilityid: FacilityId, buildingid: BuildingId, zoneid: ZoneId, watermeterid: WaterMeterId, readingstartdate: ReadingStartDate, readingenddate: ReadingEndDate },
+                        data: { facilityid: FacilityId, buildingid: BuildingId, floorid: FloorId, zoneid: ZoneId, watermeterid: WaterMeterId, readingstartdate: ReadingStartDate, readingenddate: ReadingEndDate },
                         success: function (d) {
                             ddlmetertable.empty();
 
@@ -357,9 +359,9 @@
                 if (!isNaN(ElectricityMeterId)) {
                     var ddlmetertable = $('#meterTable');
                     ddlmetertable.empty();
-                    PopulateTable();
 
                 }
+                PopulateTable();
             });
             $("#ddlReadingStartDate").change(function () {
                 PopulateTable();

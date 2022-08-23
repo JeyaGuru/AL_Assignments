@@ -38,7 +38,7 @@ namespace AL.RMZ.Controllers
 
         [HttpGet]
         [Route("Search/")]
-        public async Task<IActionResult> GetWaterMeterDetail(int? facilityid, int? buildingid, int? zoneid, int? watermeterid, DateTime? readingstartdate, DateTime? readingenddate)
+        public async Task<IActionResult> GetWaterMeterDetail(int? facilityid, int? buildingid, int? floorid, int? zoneid, int? watermeterid, DateTime? readingstartdate, DateTime? readingenddate)
         {
 
             return Ok(await
@@ -48,7 +48,7 @@ namespace AL.RMZ.Controllers
                  join zone in dbContext.Zones on floor.Id equals zone.FloorId
                  join waterMeter in dbContext.WaterMeters on zone.Id equals waterMeter.ZoneId
                  join waterMeterDetail in dbContext.WaterMeterDetails on waterMeter.Id equals waterMeterDetail.WaterMeterId
-                 where ((readingstartdate == null || waterMeterDetail.ReadingDate.Date >= readingstartdate.Value.Date) && (readingenddate == null || waterMeterDetail.ReadingDate.Date <= readingenddate.Value.Date) && (watermeterid == default || waterMeterDetail.WaterMeterId == watermeterid) && (zoneid == default || zone.Id == zoneid) && (buildingid == default || building.Id == buildingid) && (facilityid == default || facility.Id == facilityid)) 
+                 where ((readingstartdate == null || waterMeterDetail.ReadingDate.Date >= readingstartdate.Value.Date) && (readingenddate == null || waterMeterDetail.ReadingDate.Date <= readingenddate.Value.Date) && (watermeterid == default || waterMeterDetail.WaterMeterId == watermeterid) && (zoneid == default || zone.Id == zoneid) && (buildingid == default || building.Id == buildingid) && (floorid == default || floor.Id == floorid) && (facilityid == default || facility.Id == facilityid))
                  select new DisplayWaterMeterDetail { watermeter = waterMeter.Number, buildingname = building.Name, facilityname = facility.Name, startunit = waterMeterDetail.StartReading, endunit = waterMeterDetail.EndReading, zonename = zone.Name, readingdate = waterMeterDetail.ReadingDate, totalunits = waterMeterDetail.TotalUnits, id = waterMeterDetail.Id }).ToListAsync());
         }
 
