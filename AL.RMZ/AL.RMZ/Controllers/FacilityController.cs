@@ -1,5 +1,7 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
+using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,76 +15,133 @@ namespace AL.RMZ.Controllers
     [Route("api/[controller]")]
     public class FacilityController : Controller
     {
-        private readonly RMZAPIDbContext dBContext;
-        public FacilityController(RMZAPIDbContext dBContext)
+        private readonly IFacilityRepository _facilityRepository;
+        public FacilityController(IFacilityRepository facilityRepository)
         {
-            this.dBContext = dBContext;
+            this._facilityRepository = facilityRepository;
         }
 
         [HttpDelete]
-        [Route("{id:int}")]
-        public async Task<IActionResult> DeleteFacility(int id)
+        [Route("DeleteFacility")]
+        public async Task<IActionResult> DeleteFacility(int? facilityid)
         {
-            var Facility = await dBContext.Facilities.FindAsync(id);
 
-            if (Facility != null)
+            if (facilityid == default)
             {
-                dBContext.Facilities.Remove(Facility);
-
-                await dBContext.SaveChangesAsync();
+                return BadRequest();
             }
 
-            return NotFound();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetFacilities(int? Id)
-        {
-            if (Id == null)
-                return Ok(await dBContext.Facilities.ToListAsync());
-            return Ok(await dBContext.Facilities.Where(x => x.Id == Id).ToListAsync());
-        }
-
-        [HttpGet]
-        [Route("{cityid:int}")]
-        public async Task<IActionResult> GetFacilitiesByCityId(int? cityid)
-        {
-            if (cityid == null)
+            try
+            {
+                var result = await _facilityRepository.DeleteFacility(facilityid);
+                if (result != default)
+                {
+                    return Ok();
+                }
                 return NotFound();
-            return Ok(await dBContext.Facilities.Where(x => x.CityId == cityid).ToListAsync());
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
-        [HttpPut]
-        [Route("{id:int}")]
-        public async Task<IActionResult> UpdateFacility(int id, FacilityRequest updateFacilityRequest)
+        [HttpGet]
+        [Route("GetFacilities")]
+        public async Task<IActionResult> GetFacilities()
         {
-            var Facility = await dBContext.Facilities.FindAsync(id);
-
-            if (Facility != null)
+            try
             {
-                Facility.Name = updateFacilityRequest.Name;
-                Facility.CityId = updateFacilityRequest.CityId;
-                Facility.UpdatedDate = DateTime.Now;
+                var facilities = await _facilityRepository.GetFacilities();
 
-                await dBContext.SaveChangesAsync();
+                return Ok(facilities);
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetFacilitiesByCity")]
+        public async Task<IActionResult> GetFacilitiesByCity(int? CityId)
+        {
+            if (CityId == default)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                var facilities = await _facilityRepository.GetFacilitiesByCity(CityId);
+                if (facilities?.Any() == true)
+                    return Ok(facilities);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetFacility")]
+        public async Task<IActionResult> GetFacility(int? facilityId)
+        {
+            if (facilityId == default)
+            {
+                return BadRequest();
             }
 
-            return NotFound();
+            try
+            {
+                var Facility = await _facilityRepository.GetFacility(facilityId);
+
+                if (Facility?.Id != default)
+                    return Ok(Facility);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddFacility(FacilityRequest addFacilityRequest)
+        [Route("AddFacility")]
+        public async Task<IActionResult> AddFacility([FromBody] FacilityRequest model)
         {
-            var Facility = new Models.Facility
+            if (ModelState.IsValid)
             {
-                Name = addFacilityRequest.Name,
-                CityId = addFacilityRequest.CityId,
-                CreatedById = 1
-            };
-            await dBContext.Facilities.AddAsync(Facility);
-            await dBContext.SaveChangesAsync();
+                try
+                {
+                    var FacilityId = await _facilityRepository.AddFacility(model);
+                    if (FacilityId > 0)
+                        return Ok(FacilityId);
+                    else
+                        return BadRequest();
+                }
+                catch (Exception)
+                {
 
-            return Ok(Facility);
+                    return BadRequest();
+                }
+
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("UpdateFacility/{id:int}")]
+        public async Task<IActionResult> UpdateFacility(int id, [FromBody] FacilityRequest model)
+        {
+            if (ModelState.IsValid && id > 0)
+            {
+                try
+                {
+                    await _facilityRepository.UpdateFacility(id, model);
+
+                    return Ok();
+                }
+                catch (ArgumentNullException ex)
+                {
+                    return NotFound(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+            return BadRequest();
         }
     }
 }

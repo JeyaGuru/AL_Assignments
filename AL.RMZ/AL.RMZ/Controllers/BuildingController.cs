@@ -1,5 +1,7 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
+using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,78 +15,133 @@ namespace AL.RMZ.Controllers
     [Route("api/[controller]")]
     public class BuildingController : Controller
     {
-        private readonly RMZAPIDbContext dBContext;
-        public BuildingController(RMZAPIDbContext dBContext)
+        private readonly IBuildingRepository _buildingRepository;
+        public BuildingController(IBuildingRepository buildingRepository)
         {
-            this.dBContext = dBContext;
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddBuilding(BuildingRequest addBuildingRequest)
-        {
-            var building = new Models.Building
-            {
-                Name = addBuildingRequest.Name,
-                FacilityId = addBuildingRequest.FacilityId,
-                CreatedById=1
-                //FacilityId = dBContext.Facilities.Where(x=>x.Name == addBuildingRequest.FacilityName).FirstOrDefault().Id              
-
-            };
-            await dBContext.Buildings.AddAsync(building);
-            await dBContext.SaveChangesAsync();
-
-            return Ok(building);
-        }
-
-        [HttpPut]
-        [Route("{id:int}")]
-        public async Task<IActionResult> UpdateBuilding(int id, BuildingRequest updateBuildingRequest)
-        {
-            var building = await dBContext.Buildings.FindAsync(id);
-
-            if (building != null)
-            {
-                building.Name = updateBuildingRequest.Name;
-                building.FacilityId = updateBuildingRequest.FacilityId;
-                building.UpdatedDate = DateTime.Now;
-
-                await dBContext.SaveChangesAsync();
-            }
-
-            return NotFound();
+            this._buildingRepository = buildingRepository;
         }
 
         [HttpDelete]
-        [Route("{id:int}")]
-        public async Task<IActionResult> DeleteBuilding(int id)
+        [Route("DeleteBuilding")]
+        public async Task<IActionResult> DeleteBuilding(int? buildingid)
         {
-            var building = await dBContext.Buildings.FindAsync(id);
 
-            if (building != null)
+            if (buildingid == default)
             {
-                dBContext.Buildings.Remove(building);
-
-                await dBContext.SaveChangesAsync();
+                return BadRequest();
             }
 
-            return NotFound();
-        }
-
-        [HttpGet]     
-        public async Task<IActionResult> GetBuildings(int? id)
-        {
-            if (id == null)
-                return Ok(await dBContext.Buildings.ToListAsync());
-            return Ok(await dBContext.Buildings.Where(x => x.Id == id).ToListAsync());
+            try
+            {
+                var result = await _buildingRepository.DeleteBuilding(buildingid);
+                if (result != default)
+                {
+                    return Ok();
+                }
+                return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpGet]
-        [Route("{facilityid:int}")]
-        public async Task<IActionResult> GetBuildingsByFacilityId(int? facilityid)
+        [Route("GetBuildings")]
+        public async Task<IActionResult> GetBuildings()
         {
-            if (facilityid == null)
-                return NotFound();
-            return Ok(await dBContext.Buildings.Where(x => x.FacilityId == facilityid).ToListAsync());
+            try
+            {
+                var buildings = await _buildingRepository.GetBuildings();
+
+                return Ok(buildings);
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetBuildingsByFacility")]
+        public async Task<IActionResult> GetBuildingsByFacility(int? FacilityId)
+        {
+            if (FacilityId == default)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                var buildings = await _buildingRepository.GetBuildingsByFacility(FacilityId);
+                if (buildings?.Any() == true)
+                    return Ok(buildings);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetBuilding")]
+        public async Task<IActionResult> GetBuilding(int? buildingId)
+        {
+            if (buildingId == default)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var Building = await _buildingRepository.GetBuilding(buildingId);
+
+                if (Building?.Id != default)
+                    return Ok(Building);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpPost]
+        [Route("AddBuilding")]
+        public async Task<IActionResult> AddBuilding([FromBody] BuildingRequest model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var BuildingId = await _buildingRepository.AddBuilding(model);
+                    if (BuildingId > 0)
+                        return Ok(BuildingId);
+                    else
+                        return BadRequest();
+                }
+                catch (Exception)
+                {
+
+                    return BadRequest();
+                }
+
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("UpdateBuilding/{id:int}")]
+        public async Task<IActionResult> UpdateBuilding(int id, [FromBody] BuildingRequest model)
+        {
+            if (ModelState.IsValid && id > 0)
+            {
+                try
+                {
+                    await _buildingRepository.UpdateBuilding(id, model);
+
+                    return Ok();
+                }
+                catch (ArgumentNullException ex)
+                {
+                    return NotFound(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+            return BadRequest();
         }
     }
 }

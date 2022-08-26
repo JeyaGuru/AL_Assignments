@@ -2,8 +2,9 @@
 <html>
 <head>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
         table {
             padding-top: 2%;
@@ -26,7 +27,7 @@
     </style>
 </head>
 <body>
-    <h3>API Testing: WaterMeter</h3>
+    <h3>API Testing: ElectricityMeter</h3>
     <h4>Search : City, Facility, Building, Floor, Zone & Date range</h4>
     <hr />
     <br />
@@ -75,9 +76,9 @@
             </div>
             <br />
             <div class="form-group">
-                <label class="col-md-4 control-label">Water Meter</label>
+                <label class="col-md-4 control-label">Electricity Meter</label>
                 <div class="col-md-6">
-                    <select class="form-control" id="ddlWaterMeter"></select>
+                    <select class="form-control" id="ddlElectricityMeter"></select>
                     <br />
 
                 </div>
@@ -108,15 +109,15 @@
     <div class="container">
         <br />
         <div style="width:90%; margin:0 auto;">
-            <h5> Water Meter Detail(s) :</h5>
+            <h5> Electricity Meter Detail(s) :</h5>
             <table id="example" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
                 <thead>
                     <tr>
                         <th>Facility Name</th>
                         <th>Building Name</th>
                         <th>Zone Name</th>
-                        <th>Water Meter Detail Id</th>
-                        <th>Water Meter Number</th>
+                        <th>Electricity Meter Detail Id</th>
+                        <th>Electricity Meter Number</th>
                         <th>Reading Date</th>
                         <th>Start Unit</th>
                         <th>End Unit</th>
@@ -137,11 +138,11 @@
         $(document).ready(function () {
 
             document.getElementById("ddlReadingStartDate").val = null;
-            document.getElementById("ddlReadingEndDate").val = null;
+
             var ddlCity = $('#ddlCity');
             ddlCity.append($("<option></option>").val('').html('Please Select City'));
             $.ajax({
-                url: 'https://localhost:44325/api/city',
+                url: 'https://appdemo.jeyaguru.in/api/city',
                 type: 'GET',
                 dataType: 'json',
                 success: function (d) {
@@ -163,13 +164,15 @@
                 $('#ddlElectricityMeter').empty();
                 $('#ddlWaterMeter').empty();
                 $('#meterTable').empty();
+
+
                 if (!isNaN(CityId)) {
                     var ddlFacility = $('#ddlFacility');
                     ddlFacility.empty();
                     ddlFacility.append($("<option></option>").val('').html('Please wait ...'));
 
                     $.ajax({
-                        url: 'https://localhost:44325/api/Facility/' + CityId,
+                        url: 'https://appdemo.jeyaguru.in/api/Facility/' + CityId,
                         type: 'GET',
                         dataType: 'json',
                         success: function (d) {
@@ -184,12 +187,10 @@
                         }
                     });
                 }
-                PopulateTable();
             });
 
             $("#ddlFacility").change(function () {
                 var FacilityId = parseInt($(this).val());
-
                 $('#ddlBuilding').empty();
                 $('#ddlFloor').empty();
                 $('#ddlZone').empty();
@@ -202,7 +203,7 @@
                     ddlBuilding.append($("<option></option>").val('').html('Please wait ...'));
 
                     $.ajax({
-                        url: 'https://localhost:44325/api/Building/' + FacilityId,
+                        url: 'https://appdemo.jeyaguru.in/api/Building/' + FacilityId,
                         type: 'GET',
                         dataType: 'json',
                         success: function (d) {
@@ -225,19 +226,19 @@
 
             $("#ddlBuilding").change(function () {
                 var BuildingId = parseInt($(this).val());
-
                 $('#ddlFloor').empty();
                 $('#ddlZone').empty();
                 $('#ddlElectricityMeter').empty();
                 $('#ddlWaterMeter').empty();
                 $('#meterTable').empty();
+
                 if (!isNaN(BuildingId)) {
                     var ddlFloor = $('#ddlFloor');
                     ddlFloor.empty();
                     ddlFloor.append($("<option></option>").val('').html('Please wait ...'));
 
                     $.ajax({
-                        url: 'https://localhost:44325/api/Floor/' + BuildingId,
+                        url: 'https://appdemo.jeyaguru.in/api/Floor/' + BuildingId,
                         type: 'GET',
                         dataType: 'json',
                         success: function (d) {
@@ -258,18 +259,18 @@
 
             $("#ddlFloor").change(function () {
                 var FloorId = parseInt($(this).val());
-
                 $('#ddlZone').empty();
                 $('#ddlElectricityMeter').empty();
                 $('#ddlWaterMeter').empty();
                 $('#meterTable').empty();
+
                 if (!isNaN(FloorId)) {
                     var ddlZone = $('#ddlZone');
                     ddlZone.empty();
                     ddlZone.append($("<option></option>").val('').html('Please wait ...'));
 
                     $.ajax({
-                        url: 'https://localhost:44325/api/Zone/' + FloorId,
+                        url: 'https://appdemo.jeyaguru.in/api/Zone/' + FloorId,
                         type: 'GET',
                         dataType: 'json',
                         success: function (d) {
@@ -289,24 +290,23 @@
 
             $("#ddlZone").change(function () {
                 var ZoneId = parseInt($(this).val());
-
                 $('#ddlElectricityMeter').empty();
                 $('#ddlWaterMeter').empty();
                 $('#meterTable').empty();
                 if (!isNaN(ZoneId)) {
-                    var ddlWaterMeter = $('#ddlWaterMeter');
-                    ddlWaterMeter.empty();
-                    ddlWaterMeter.append($("<option></option>").val('').html('Please wait ...'));
+                    var ddlElectricityMeter = $('#ddlElectricityMeter');
+                    ddlElectricityMeter.empty();
+                    ddlElectricityMeter.append($("<option></option>").val('').html('Please wait ...'));
 
                     $.ajax({
-                        url: 'https://localhost:44325/api/WaterMeter/' + ZoneId,
+                        url: 'https://appdemo.jeyaguru.in/api/ElectricityMeter/' + ZoneId,
                         type: 'GET',
                         dataType: 'json',
                         success: function (d) {
-                            ddlWaterMeter.empty();
-                            ddlWaterMeter.append($("<option></option>").val('').html('Select WaterMeter'));
-                            $.each(d, function (i, Watermeter) {
-                                ddlWaterMeter.append($("<option></option>").val(Watermeter.id).html(Watermeter.number));
+                            ddlElectricityMeter.empty();
+                            ddlElectricityMeter.append($("<option></option>").val('').html('Select ElectricityMeter'));
+                            $.each(d, function (i, electricitymeter) {
+                                ddlElectricityMeter.append($("<option></option>").val(electricitymeter.id).html(electricitymeter.number));
                             });
                         },
                         error: function () {
@@ -318,29 +318,30 @@
                 PopulateTable();
             });
 
+
             function PopulateTable() {
 
                 var FacilityId = document.getElementById("ddlFacility").value;
                 var BuildingId = document.getElementById("ddlBuilding").value;
                 var FloorId = document.getElementById("ddlFloor").value;
                 var ZoneId = document.getElementById("ddlZone").value;
-                var WaterMeterId = document.getElementById("ddlWaterMeter").value;
+                var ElectricityMeterId = document.getElementById("ddlElectricityMeter").value;
                 var ReadingStartDate = document.getElementById("ddlReadingStartDate").value;
                 var ReadingEndDate = document.getElementById("ddlReadingEndDate").value;
 
                 (function () {
                     var ddlmetertable = $("#meterTable");
                     $.ajax({
-                        url: 'https://localhost:44325/api/WaterMeterDetail/Search/',
+                        url: 'https://appdemo.jeyaguru.in/api/ElectricityMeterDetail/Search/',
                         type: 'GET',
                         dataType: 'json',
-                        data: { facilityid: FacilityId, buildingid: BuildingId, floorid: FloorId, zoneid: ZoneId, watermeterid: WaterMeterId, readingstartdate: ReadingStartDate, readingenddate: ReadingEndDate },
+                        data: { facilityid: FacilityId, buildingid: BuildingId, floorid: FloorId, zoneid: ZoneId, electricitymeterid: ElectricityMeterId, readingstartdate: ReadingStartDate, readingenddate: ReadingEndDate },
                         success: function (d) {
                             ddlmetertable.empty();
 
                             $.each(d, function (i, detail) {
                                 var row = $('<tr>');
-                                row.append($('<th>' + detail.facilityname + '</th>' + '<th>' + detail.buildingname + '<th>' + detail.zonename + '</th>' + '</th>' + '<th>' + detail.id + '</th>' + '<th>' + detail.watermeter + '</th>' + '<th>' + detail.readingdate + '</th>' + '<th>' + detail.startunit + '</th>' + '<th>' + detail.endunit + '</th>' + '<th>' + detail.totalunits + '</th>'));
+                                row.append($('<th>' + detail.facilityname + '</th>' + '<th>' + detail.buildingname + '<th>' + detail.zonename + '</th>' + '</th>' + '<th>' + detail.id + '</th>' + '<th>' + detail.electricitymeter + '</th>' + '<th>' + detail.readingdate + '</th>' + '<th>' + detail.startunit + '</th>' + '<th>' + detail.endunit + '</th>' + '<th>' + detail.totalunits + '</th>'));
                                 row.append($('</tr>'));
                                 $('#meterTable').append(row);
                             });
@@ -353,13 +354,12 @@
                 })();
             }
 
-            $("#ddlWaterMeter").change(function () {
+            $("#ddlElectricityMeter").change(function () {
                 var ElectricityMeterId = parseInt($(this).val());
 
                 if (!isNaN(ElectricityMeterId)) {
                     var ddlmetertable = $('#meterTable');
                     ddlmetertable.empty();
-
                 }
                 PopulateTable();
             });
@@ -373,8 +373,5 @@
 
         });
     </script>
-
-
 </body>
-
 </html> 

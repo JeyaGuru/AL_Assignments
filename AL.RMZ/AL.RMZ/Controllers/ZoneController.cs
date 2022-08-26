@@ -1,5 +1,7 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
+using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,76 +15,132 @@ namespace AL.RMZ.Controllers
     [Route("api/[controller]")]
     public class ZoneController : Controller
     {
-        private readonly RMZAPIDbContext dBContext;
-        public ZoneController(RMZAPIDbContext dBContext)
+        private readonly IZoneRepository _zoneRepository;
+        public ZoneController(IZoneRepository zoneRepository)
         {
-            this.dBContext = dBContext;
+            this._zoneRepository = zoneRepository;
         }
 
         [HttpDelete]
-        [Route("{id:int}")]
-        public async Task<IActionResult> DeleteZone(int id)
+        [Route("DeleteZone")]
+        public async Task<IActionResult> DeleteZone(int? zoneid)
         {
-            var Zone = await dBContext.Zones.FindAsync(id);
 
-            if (Zone != null)
+            if (zoneid == default)
             {
-                dBContext.Zones.Remove(Zone);
-
-                await dBContext.SaveChangesAsync();
+                return BadRequest();
             }
 
-            return NotFound();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetZones(int? Id)
-        {
-            if (Id == null)
-                return Ok(await dBContext.Zones.ToListAsync());
-            return Ok(await dBContext.Zones.Where(x => x.Id == Id).ToListAsync());
-        }
-
-        [HttpGet]
-        [Route("{floorId:int}")]
-        public async Task<IActionResult> GetZonesByFloorId(int? floorid)
-        {
-            if (floorid == null)
+            try
+            {
+                var result = await _zoneRepository.DeleteZone(zoneid);
+                if (result != default)
+                {
+                    return Ok();
+                }
                 return NotFound();
-            return Ok(await dBContext.Zones.Where(x => x.FloorId == floorid).ToListAsync());
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
-        [HttpPut]
-        [Route("{id:int}")]
-        public async Task<IActionResult> UpdateZone(int id, ZoneRequest updateZoneRequest)
+        [HttpGet]
+        [Route("GetZones")]
+        public async Task<IActionResult> GetZones()
         {
-            var Zone = await dBContext.Zones.FindAsync(id);
-
-            if (Zone != null)
+            try
             {
-                Zone.Name = updateZoneRequest.Name;
-                Zone.FloorId = updateZoneRequest.FloorId;
-                Zone.UpdatedDate = DateTime.Now;
+                var zones = await _zoneRepository.GetZones();
 
-                await dBContext.SaveChangesAsync();
+                return Ok(zones);
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetZonesByFloor")]
+        public async Task<IActionResult> GetZonesByFloor(int? FloorId)
+        {
+            if (FloorId == default)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                var zones = await _zoneRepository.GetZonesByFloor(FloorId);
+                if (zones?.Any() == true)
+                    return Ok(zones);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetZone")]
+        public async Task<IActionResult> GetZone(int? zoneId)
+        {
+            if (zoneId == default)
+            {
+                return BadRequest();
             }
 
-            return NotFound();
+            try
+            {
+                var Zone = await _zoneRepository.GetZone(zoneId);
+
+                if (Zone?.Id != default)
+                    return Ok(Zone);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddZone(ZoneRequest addZoneRequest)
+        [Route("AddZone")]
+        public async Task<IActionResult> AddZone([FromBody] ZoneRequest model)
         {
-            var Zone = new Models.Zone
+            if (ModelState.IsValid)
             {
-                Name = addZoneRequest.Name,
-                FloorId = addZoneRequest.FloorId,
-                CreatedById = 1
-            };
-            await dBContext.Zones.AddAsync(Zone);
-            await dBContext.SaveChangesAsync();
+                try
+                {
+                    var ZoneId = await _zoneRepository.AddZone(model);
+                    if (ZoneId > 0)
+                        return Ok(ZoneId);
+                    else
+                        return BadRequest();
+                }
+                catch (Exception)
+                {
 
-            return Ok(Zone);
+                    return BadRequest();
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("UpdateZone/{id:int}")]
+        public async Task<IActionResult> UpdateZone(int id, [FromBody] ZoneRequest model)
+        {
+            if (ModelState.IsValid && id > 0)
+            {
+                try
+                {
+                    await _zoneRepository.UpdateZone(id, model);
+
+                    return Ok();
+                }
+                catch (ArgumentNullException ex)
+                {
+                    return NotFound(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+            return BadRequest();
         }
     }
 }

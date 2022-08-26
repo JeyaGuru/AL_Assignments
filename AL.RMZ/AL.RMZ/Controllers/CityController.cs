@@ -1,5 +1,6 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
+using AL.RMZ.Repository;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,49 +15,113 @@ namespace AL.RMZ.Controllers
     [Route("api/[controller]")]
     public class CityController : Controller
     {
-        private readonly RMZAPIDbContext dBContext;
-        public CityController(RMZAPIDbContext dbContext)
+        private readonly ICityRepository _cityRepository;
+        public CityController(ICityRepository cityRepository)
         {
-            this.dBContext = dbContext;
+            this._cityRepository = cityRepository;
         }
+
         [HttpDelete]
-        [Route("{id:int}")]
-        public async Task<IActionResult> DeleteCity(int id)
+        [Route("DeleteCity")]
+        public async Task<IActionResult> DeleteCity(int? cityid)
         {
-            var city = await dBContext.Cities.FindAsync(id);
+            int result = 0;
 
-            if (city != null)
+            if (cityid == default)
             {
-                dBContext.Cities.Remove(city);
-
-                await dBContext.SaveChangesAsync();
+                return BadRequest();
             }
 
-            return NotFound();
+            try
+            {
+                result = await _cityRepository.DeleteCity(cityid);
+                if (result > 0)
+                {
+                    return Ok();
+                }
+                return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetCities(int? Id)
+        [Route("GetCities")]
+        public async Task<IActionResult> GetCities()
         {
-            dBContext.Cities.Add(new City { Id = 1, Name = "Bangalore" });
-            if (Id == null)
-                return Ok(await dBContext.Cities.ToListAsync());
-            return Ok(await dBContext.Cities.Where(x => x.Id == Id).ToListAsync());
+            try
+            {
+                var cities = await _cityRepository.GetCities();
+
+                return Ok(cities);
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetCity")]
+        public async Task<IActionResult> GetCity(int? cityId)
+        {
+            if (cityId == default)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var City = await _cityRepository.GetCity(cityId);
+
+                if (City?.Id != default)
+                    return Ok(City);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCity(CityRequest addCityRequest)
+        [Route("AddCity")]
+        public async Task<IActionResult> AddCity([FromBody] CityRequest model)
         {
-            City city = new City()
+            if (ModelState.IsValid)
             {
-                Name = addCityRequest.Name,
-                CreatedById = 1
+                try
+                {
+                    var CityId = await _cityRepository.AddCity(model);
 
-            };
-            await dBContext.Cities.AddAsync(city);
-            await dBContext.SaveChangesAsync();
+                    return Ok(CityId);
+                }
+                catch (Exception)
+                {
 
-            return Ok(city);
+                    return BadRequest();
+                }
+
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("UpdateCity/{id:int}")]
+        public async Task<IActionResult> UpdateCity(int id, [FromBody] CityRequest model)
+        {
+            if (ModelState.IsValid && id > 0)
+            {
+                try
+                {
+                    await _cityRepository.UpdateCity(id, model);
+
+                    return Ok();
+                }
+                catch (ArgumentNullException ex)
+                {
+                    return NotFound(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+            return BadRequest();
         }
     }
 }

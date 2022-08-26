@@ -1,5 +1,7 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
+using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,75 +15,133 @@ namespace AL.RMZ.Controllers
     [Route("api/[controller]")]
     public class FloorController : Controller
     {
-        private readonly RMZAPIDbContext dBContext;
-        public FloorController(RMZAPIDbContext dBContext)
+        private readonly IFloorRepository _floorRepository;
+        public FloorController(IFloorRepository floorRepository)
         {
-            this.dBContext = dBContext;
+            this._floorRepository = floorRepository;
         }
+
         [HttpDelete]
-        [Route("{id:int}")]
-        public async Task<IActionResult> DeleteFloor(int id)
+        [Route("DeleteFloor")]
+        public async Task<IActionResult> DeleteFloor(int? floorid)
         {
-            var Floor = await dBContext.Floors.FindAsync(id);
 
-            if (Floor != null)
+            if (floorid == default)
             {
-                dBContext.Floors.Remove(Floor);
-
-                await dBContext.SaveChangesAsync();
+                return BadRequest();
             }
 
-            return NotFound();
-        }
-
-        [HttpGet]        
-        public async Task<IActionResult> GetFloors(int? Id)
-        {
-            if (Id == null)
-                return Ok(await dBContext.Floors.ToListAsync());
-            return Ok(await dBContext.Floors.Where(x => x.Id == Id).ToListAsync());
+            try
+            {
+                var result = await _floorRepository.DeleteFloor(floorid);
+                if (result != default)
+                {
+                    return Ok();
+                }
+                return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpGet]
-        [Route("{buildingid:int}")]
-        public async Task<IActionResult> GetFloorsByBuildingId(int? buildingid)
+        [Route("GetFloors")]
+        public async Task<IActionResult> GetFloors()
         {
-            if (buildingid == null)
-                return NotFound();
-            return Ok(await dBContext.Floors.Where(x => x.BuildingId == buildingid).ToListAsync());
+            try
+            {
+                var floors = await _floorRepository.GetFloors();
+
+                return Ok(floors);
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
-        [HttpPut]
-        [Route("{id:int}")]
-        public async Task<IActionResult> UpdateFloor(int id, FloorRequest updateFloorRequest)
+        [HttpGet]
+        [Route("GetFloorsByBuilding")]
+        public async Task<IActionResult> GetFloorsByBuilding(int? BuildingId)
         {
-            var Floor = await dBContext.Floors.FindAsync(id);
-
-            if (Floor != null)
+            if (BuildingId == default)
             {
-                Floor.Name = updateFloorRequest.Name;
-                Floor.BuildingId = updateFloorRequest.BuildingId;
-                Floor.UpdatedDate = DateTime.Now;
+                return BadRequest();
+            }
+            try
+            {
+                var floors = await _floorRepository.GetFloorsByBuilding(BuildingId);
+                if (floors?.Any() == true)
+                    return Ok(floors);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
+        }
 
-                await dBContext.SaveChangesAsync();
+        [HttpGet]
+        [Route("GetFloor")]
+        public async Task<IActionResult> GetFloor(int? floorId)
+        {
+            if (floorId == default)
+            {
+                return BadRequest();
             }
 
-            return NotFound();
+            try
+            {
+                var Floor = await _floorRepository.GetFloor(floorId);
+
+                if (Floor?.Id != default)
+                    return Ok(Floor);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddFloor(FloorRequest addFloorRequest)
+        [Route("AddFloor")]
+        public async Task<IActionResult> AddFloor([FromBody] FloorRequest model)
         {
-            var Floor = new Models.Floor
+            if (ModelState.IsValid)
             {
-                BuildingId = addFloorRequest.BuildingId,
-                Name = addFloorRequest.Name,
-                CreatedById = 1
-            };
-            await dBContext.Floors.AddAsync(Floor);
-            await dBContext.SaveChangesAsync();
+                try
+                {
+                    var FloorId = await _floorRepository.AddFloor(model);
+                    if (FloorId > 0)
+                        return Ok(FloorId);
+                    else
+                        return BadRequest();
+                }
+                catch (Exception)
+                {
 
-            return Ok(Floor);
+                    return BadRequest();
+                }
+
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("UpdateFloor/{id:int}")]
+        public async Task<IActionResult> UpdateFloor(int id, [FromBody] FloorRequest model)
+        {
+            if (ModelState.IsValid && id > 0)
+            {
+                try
+                {
+                    await _floorRepository.UpdateFloor(id, model);
+
+                    return Ok();
+                }
+                catch (ArgumentNullException ex)
+                {
+                    return NotFound(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+            return BadRequest();
         }
     }
 }

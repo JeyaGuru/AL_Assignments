@@ -1,5 +1,7 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
+using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,75 +15,132 @@ namespace AL.RMZ.Controllers
     [Route("api/[controller]")]
     public class WaterMeterController : Controller
     {
-        private readonly RMZAPIDbContext dBContext;
-        public WaterMeterController(RMZAPIDbContext dBContext)
+        private readonly IWaterMeterRepository _waterMeterRepository;
+        public WaterMeterController(IWaterMeterRepository waterMeterRepository)
         {
-            this.dBContext = dBContext;
+            this._waterMeterRepository = waterMeterRepository;
         }
+
         [HttpDelete]
-        [Route("{id:int}")]
-        public async Task<IActionResult> DeleteWaterMeter(int id)
+        [Route("DeleteWaterMeter")]
+        public async Task<IActionResult> DeleteWaterMeter(int? waterMeterid)
         {
-            var WaterMeter = await dBContext.WaterMeters.FindAsync(id);
 
-            if (WaterMeter != null)
+            if (waterMeterid == default)
             {
-                dBContext.WaterMeters.Remove(WaterMeter);
-
-                await dBContext.SaveChangesAsync();
+                return BadRequest();
             }
 
-            return NotFound();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetWaterMeters(int? Id)
-        {
-            if (Id == null)
-                return Ok(await dBContext.WaterMeters.ToListAsync());
-            return Ok(await dBContext.WaterMeters.Where(x => x.Id == Id).ToListAsync());
-        }
-
-        [HttpGet]
-        [Route("{zoneid:int}")]
-        public async Task<IActionResult> GetWaterMetersByZoneId(int? zoneid)
-        {
-            if (zoneid == null)
+            try
+            {
+                var result = await _waterMeterRepository.DeleteWaterMeter(waterMeterid);
+                if (result != default)
+                {
+                    return Ok();
+                }
                 return NotFound();
-            return Ok(await dBContext.WaterMeters.Where(x => x.ZoneId == zoneid).ToListAsync());
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
-        [HttpPut]
-        [Route("{id:int}")]
-        public async Task<IActionResult> UpdateWaterMeter(int id, WaterMeterRequest updateWaterMeterRequest)
+        [HttpGet]
+        [Route("GetWaterMeters")]
+        public async Task<IActionResult> GetWaterMeters()
         {
-            var WaterMeter = await dBContext.WaterMeters.FindAsync(id);
-
-            if (WaterMeter != null)
+            try
             {
-                WaterMeter.Number = updateWaterMeterRequest.Number;
-                WaterMeter.ZoneId = updateWaterMeterRequest.ZoneId;
-                WaterMeter.UpdatedDate = DateTime.Now;
+                var waterMeters = await _waterMeterRepository.GetWaterMeters();
 
-                await dBContext.SaveChangesAsync();
+                return Ok(waterMeters);
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetWaterMetersByZone")]
+        public async Task<IActionResult> GetWaterMetersByZone(int? ZoneId)
+        {
+            if (ZoneId == default)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                var waterMeters = await _waterMeterRepository.GetWaterMetersByZone(ZoneId);
+                if (waterMeters?.Any() == true)
+                    return Ok(waterMeters);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetWaterMeter")]
+        public async Task<IActionResult> GetWaterMeter(int? waterMeterId)
+        {
+            if (waterMeterId == default)
+            {
+                return BadRequest();
             }
 
-            return NotFound();
+            try
+            {
+                var WaterMeter = await _waterMeterRepository.GetWaterMeter(waterMeterId);
+
+                if (WaterMeter?.Id != default)
+                    return Ok(WaterMeter);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddWaterMeter(WaterMeterRequest addWaterMeterRequest)
+        [Route("AddWaterMeter")]
+        public async Task<IActionResult> AddWaterMeter([FromBody] WaterMeterRequest model)
         {
-            var WaterMeter = new Models.WaterMeter
+            if (ModelState.IsValid)
             {
-                Number = addWaterMeterRequest.Number,
-                ZoneId = addWaterMeterRequest.ZoneId,
-                CreatedById = 1
-            };
-            await dBContext.WaterMeters.AddAsync(WaterMeter);
-            await dBContext.SaveChangesAsync();
+                try
+                {
+                    var WaterMeterId = await _waterMeterRepository.AddWaterMeter(model);
+                    if (WaterMeterId > 0)
+                        return Ok(WaterMeterId);
+                    else
+                        return BadRequest();
+                }
+                catch (Exception)
+                {
 
-            return Ok(WaterMeter);
+                    return BadRequest();
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("UpdateWaterMeter/{id:int}")]
+        public async Task<IActionResult> UpdateWaterMeter(int id, [FromBody] WaterMeterRequest model)
+        {
+            if (ModelState.IsValid && id > 0)
+            {
+                try
+                {
+                    await _waterMeterRepository.UpdateWaterMeter(id, model);
+
+                    return Ok();
+                }
+                catch (ArgumentNullException ex)
+                {
+                    return NotFound(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+            return BadRequest();
         }
     }
 }

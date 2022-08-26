@@ -1,5 +1,7 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
+using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,63 +15,144 @@ namespace AL.RMZ.Controllers
     [Route("api/[controller]")]
     public class ElectricityMeterDetailController : Controller
     {
-        private readonly RMZAPIDbContext dbContext;
-        public ElectricityMeterDetailController(RMZAPIDbContext dbContext)
+        private readonly IElectricityMeterDetailRepository _electricityMeterDetailRepository;
+        public ElectricityMeterDetailController(IElectricityMeterDetailRepository electricityMeterDetailRepository)
         {
-            this.dbContext = dbContext;
+            this._electricityMeterDetailRepository = electricityMeterDetailRepository;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetElectricityMeters(int? id)
+        [HttpDelete]
+        [Route("DeleteElectricityMeterDetail")]
+        public async Task<IActionResult> DeleteElectricityMeterDetail(int? electricityMeterDetailid)
         {
-            if (id == null)
-                return Ok(await dbContext.ElectricityMeterDetails.ToListAsync());
-            return Ok(await dbContext.ElectricityMeterDetails.Where(x => x.Id == id).ToListAsync());
-        }
 
-        [HttpGet]
-        [Route("{electricitymeterid:int}")]
-        public async Task<IActionResult> GetElectricityMeterByElectricityMeterId(int? electricitymeterid)
-        {
-            if (electricitymeterid == null)
+            if (electricityMeterDetailid == default)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var result = await _electricityMeterDetailRepository.DeleteElectricityMeterDetail(electricityMeterDetailid);
+                if (result != default)
+                {
+                    return Ok();
+                }
                 return NotFound();
-            return Ok(await dbContext.ElectricityMeterDetails.Where(x => x.ElectricityMeterId == electricitymeterid).ToListAsync());
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpGet]
-        [Route("Search/")]
-        public async Task<IActionResult> GetElectricityMeterDetail(int? facilityid, int? buildingid, int? floorid, int? zoneid, int? electricitymeterid, DateTime? readingstartdate, DateTime? readingenddate)
+        [Route("GetElectricityMeterDetails")]
+        public async Task<IActionResult> GetElectricityMeterDetails()
         {
+            try
+            {
+                var electricityMeterDetails = await _electricityMeterDetailRepository.GetElectricityMeterDetails();
 
-            return Ok(await
-                (from facility in dbContext.Facilities
-                 join building in dbContext.Buildings on facility.Id equals building.FacilityId
-                 join floor in dbContext.Floors on building.Id equals floor.BuildingId
-                 join zone in dbContext.Zones on floor.Id equals zone.FloorId
-                 join electricityMeter in dbContext.ElectricityMeters on zone.Id equals electricityMeter.ZoneId
-                 join electricityMeterDetail in dbContext.ElectricityMeterDetails on electricityMeter.Id equals electricityMeterDetail.ElectricityMeterId
-                 where ((readingstartdate == null || electricityMeterDetail.ReadingDate.Date >= readingstartdate.Value.Date) && (readingenddate == null || electricityMeterDetail.ReadingDate.Date <= readingenddate.Value.Date) && (electricitymeterid == default || electricityMeterDetail.ElectricityMeterId == electricitymeterid) && (zoneid == default || zone.Id == zoneid) && (floorid == default || floor.Id == floorid) && (buildingid == default || building.Id == buildingid) && (facilityid == default || facility.Id == facilityid))
-                 select new DisplayElectricityMeterDetail { electricitymeter = electricityMeter.Number, buildingname = building.Name, facilityname = facility.Name, startunit = electricityMeterDetail.StartReading, endunit = electricityMeterDetail.EndReading, zonename = zone.Name, readingdate = electricityMeterDetail.ReadingDate, totalunits = electricityMeterDetail.TotalUnits, id = electricityMeterDetail.Id }).ToListAsync());
+                return Ok(electricityMeterDetails);
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetElectricityMeterDetailsByElectricityMeter")]
+        public async Task<IActionResult> GetElectricityMeterDetailsByElectricityMeter(int? ElectricityMeterId)
+        {
+            if (ElectricityMeterId == default)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                var electricityMeterDetails = await _electricityMeterDetailRepository.GetElectricityMeterDetailsByElectricityMeter(ElectricityMeterId);
+                if (electricityMeterDetails?.Any() == true)
+                    return Ok(electricityMeterDetails);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetElectricityMeterDetail")]
+        public async Task<IActionResult> GetElectricityMeterDetail(int? electricityMeterDetailId)
+        {
+            if (electricityMeterDetailId == default)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var ElectricityMeterDetail = await _electricityMeterDetailRepository.GetElectricityMeterDetail(electricityMeterDetailId);
+
+                if (ElectricityMeterDetail?.Id != default)
+                    return Ok(ElectricityMeterDetail);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddElectricityMeterDetail(ElectricityMeterDetailRequest electricityMeterDetailRequest)
+        [Route("AddElectricityMeterDetail")]
+        public async Task<IActionResult> AddElectricityMeterDetail([FromBody] ElectricityMeterDetailRequest model)
         {
-            if (electricityMeterDetailRequest == null)
-                return NotFound();
-
-            var electricityMeterDetail = new Models.ElectricityMeterDetail
+            if (ModelState.IsValid)
             {
-                ReadingDate = electricityMeterDetailRequest.ReadingDate,
-                ElectricityMeterId = electricityMeterDetailRequest.ElectricityMeterId,
-                StartReading = electricityMeterDetailRequest.StartReading,
-                EndReading = electricityMeterDetailRequest.EndReading,
-                CreatedById = 1
-            };
-            await dbContext.ElectricityMeterDetails.AddAsync(electricityMeterDetail);
-            await dbContext.SaveChangesAsync();
+                try
+                {
+                    var ElectricityMeterDetailId = await _electricityMeterDetailRepository.AddElectricityMeterDetail(model);
+                    if (ElectricityMeterDetailId > 0)
+                        return Ok(ElectricityMeterDetailId);
+                    else
+                        return BadRequest();
+                }
+                catch (Exception)
+                {
 
-            return Ok(electricityMeterDetail);
+                    return BadRequest();
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("UpdateElectricityMeterDetail/{id:int}")]
+        public async Task<IActionResult> UpdateElectricityMeterDetail(int id, [FromBody] ElectricityMeterDetailRequest model)
+        {
+            if (ModelState.IsValid && id > 0)
+            {
+                try
+                {
+                    await _electricityMeterDetailRepository.UpdateElectricityMeterDetail(id, model);
+
+                    return Ok();
+                }
+                catch (ArgumentNullException ex)
+                {
+                    return NotFound(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpGet]
+        [Route("GetElectricityMeterDetailByParams")]
+        public async Task<IActionResult> GetElectricityMeterDetailByParams(int? facilityid, int? buildingid, int? floorid, int? zoneid, int? electricitymeterid, DateTime? readingstartdate, DateTime? readingenddate)
+        {
+            try
+            {
+                var electricityMeterDetails = await _electricityMeterDetailRepository.GetElectricityMeterDetailByParams(facilityid, buildingid, floorid, zoneid, electricitymeterid, readingstartdate, readingenddate);
+                return Ok(electricityMeterDetails);
+            }
+            catch (Exception) { return BadRequest(); }
         }
     }
 }

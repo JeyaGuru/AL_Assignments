@@ -1,5 +1,7 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
+using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,63 +15,145 @@ namespace AL.RMZ.Controllers
     [Route("api/[controller]")]
     public class WaterMeterDetailController : Controller
     {
-        private readonly RMZAPIDbContext dbContext;
-        public WaterMeterDetailController(RMZAPIDbContext dbContext)
+        private readonly IWaterMeterDetailRepository _waterMeterDetailRepository;
+        public WaterMeterDetailController(IWaterMeterDetailRepository waterMeterDetailRepository)
         {
-            this.dbContext = dbContext;
+            this._waterMeterDetailRepository = waterMeterDetailRepository;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetWaterMeters(int? id)
+        [HttpDelete]
+        [Route("DeleteWaterMeterDetail")]
+        public async Task<IActionResult> DeleteWaterMeterDetail(int? waterMeterDetailid)
         {
-            if (id == null)
-                return Ok(await dbContext.WaterMeterDetails.ToListAsync());
-            return Ok(await dbContext.WaterMeterDetails.Where(x => x.Id == id).ToListAsync());
-        }
 
-        [HttpGet]
-        [Route("{watermeterid:int}")]
-        public async Task<IActionResult> GetWaterMeterByWaterMeterId(int? watermeterid)
-        {
-            if (watermeterid == null)
+            if (waterMeterDetailid == default)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var result = await _waterMeterDetailRepository.DeleteWaterMeterDetail(waterMeterDetailid);
+                if (result != default)
+                {
+                    return Ok();
+                }
                 return NotFound();
-            return Ok(await dbContext.WaterMeterDetails.Where(x => x.WaterMeterId == watermeterid).ToListAsync());
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpGet]
-        [Route("Search/")]
-        public async Task<IActionResult> GetWaterMeterDetail(int? facilityid, int? buildingid, int? floorid, int? zoneid, int? watermeterid, DateTime? readingstartdate, DateTime? readingenddate)
+        [Route("GetWaterMeterDetails")]
+        public async Task<IActionResult> GetWaterMeterDetails()
         {
+            try
+            {
+                var waterMeterDetails = await _waterMeterDetailRepository.GetWaterMeterDetails();
 
-            return Ok(await
-                (from facility in dbContext.Facilities
-                 join building in dbContext.Buildings on facility.Id equals building.FacilityId
-                 join floor in dbContext.Floors on building.Id equals floor.BuildingId
-                 join zone in dbContext.Zones on floor.Id equals zone.FloorId
-                 join waterMeter in dbContext.WaterMeters on zone.Id equals waterMeter.ZoneId
-                 join waterMeterDetail in dbContext.WaterMeterDetails on waterMeter.Id equals waterMeterDetail.WaterMeterId
-                 where ((readingstartdate == null || waterMeterDetail.ReadingDate.Date >= readingstartdate.Value.Date) && (readingenddate == null || waterMeterDetail.ReadingDate.Date <= readingenddate.Value.Date) && (watermeterid == default || waterMeterDetail.WaterMeterId == watermeterid) && (zoneid == default || zone.Id == zoneid) && (buildingid == default || building.Id == buildingid) && (floorid == default || floor.Id == floorid) && (facilityid == default || facility.Id == facilityid))
-                 select new DisplayWaterMeterDetail { watermeter = waterMeter.Number, buildingname = building.Name, facilityname = facility.Name, startunit = waterMeterDetail.StartReading, endunit = waterMeterDetail.EndReading, zonename = zone.Name, readingdate = waterMeterDetail.ReadingDate, totalunits = waterMeterDetail.TotalUnits, id = waterMeterDetail.Id }).ToListAsync());
+                return Ok(waterMeterDetails);
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetWaterMeterDetailsByWaterMeter")]
+        public async Task<IActionResult> GetWaterMeterDetailsByWaterMeter(int? WaterMeterId)
+        {
+            if (WaterMeterId == default)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                var waterMeterDetails = await _waterMeterDetailRepository.GetWaterMeterDetailsByWaterMeter(WaterMeterId);
+                if (waterMeterDetails?.Any() == true)
+                    return Ok(waterMeterDetails);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
+        }
+
+        [HttpGet]
+        [Route("GetWaterMeterDetail")]
+        public async Task<IActionResult> GetWaterMeterDetail(int? waterMeterDetailId)
+        {
+            if (waterMeterDetailId == default)
+            {
+                return BadRequest();
+            }
+
+            try
+            {
+                var WaterMeterDetail = await _waterMeterDetailRepository.GetWaterMeterDetail(waterMeterDetailId);
+
+                if (WaterMeterDetail?.Id != default)
+                    return Ok(WaterMeterDetail);
+                else
+                    return NotFound();
+            }
+            catch (Exception) { return BadRequest(); }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddWaterMeterDetail(WaterMeterDetailRequest WaterMeterDetailRequest)
+        [Route("AddWaterMeterDetail")]
+        public async Task<IActionResult> AddWaterMeterDetail([FromBody] WaterMeterDetailRequest model)
         {
-            if (WaterMeterDetailRequest == null)
-                return NotFound();
-
-            var WaterMeterDetail = new Models.WaterMeterDetail
+            if (ModelState.IsValid)
             {
-                ReadingDate = WaterMeterDetailRequest.ReadingDate,
-                WaterMeterId = WaterMeterDetailRequest.WaterMeterId,
-                StartReading = WaterMeterDetailRequest.StartReading,
-                EndReading = WaterMeterDetailRequest.EndReading,
-                CreatedById = 1
-            };
-            await dbContext.WaterMeterDetails.AddAsync(WaterMeterDetail);
-            await dbContext.SaveChangesAsync();
+                try
+                {
+                    var WaterMeterDetailId = await _waterMeterDetailRepository.AddWaterMeterDetail(model);
+                    if (WaterMeterDetailId > 0)
+                        return Ok(WaterMeterDetailId);
+                    else
+                        return BadRequest();
+                }
+                catch (Exception)
+                {
 
-            return Ok(WaterMeterDetail);
+                    return BadRequest();
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpPost]
+        [Route("UpdateWaterMeterDetail:{id:int}")]
+        public async Task<IActionResult> UpdateWaterMeterDetail(int waterMeterId, [FromBody] WaterMeterDetailRequest model)
+        {
+            if (ModelState.IsValid && waterMeterId > 0)
+            {
+                try
+                {
+                    await _waterMeterDetailRepository.UpdateWaterMeterDetail(waterMeterId, model);
+
+                    return Ok();
+                }
+                catch (ArgumentNullException ex)
+                {
+                    return NotFound(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpGet]
+        [Route("GetWaterMeterDetailByParams")]
+        public async Task<IActionResult> GetWaterMeterDetailByParams(int? facilityid, int? buildingid, int? floorid, int? zoneid, int? watermeterid, DateTime? readingstartdate, DateTime? readingenddate)
+        {
+            try
+            {
+                var waterMeterDetails = await _waterMeterDetailRepository.GetWaterMeterDetailByParams(facilityid, buildingid, floorid, zoneid, watermeterid, readingstartdate, readingenddate);
+                return Ok(waterMeterDetails);
+
+            }
+            catch (Exception) { return BadRequest(); }
         }
     }
 }

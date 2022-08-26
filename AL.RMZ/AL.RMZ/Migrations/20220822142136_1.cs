@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace AL.RMZ.Migrations
 {
+    [ExcludeFromCodeCoverage]
     public partial class _1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
