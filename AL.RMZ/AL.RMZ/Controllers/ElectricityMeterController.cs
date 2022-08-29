@@ -1,6 +1,7 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
 using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 namespace AL.RMZ.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class ElectricityMeterController : Controller
     {
@@ -116,7 +118,7 @@ namespace AL.RMZ.Controllers
                     return BadRequest();
                 }
             }
-            return BadRequest();
+            return BadRequest(ModelState);
         }
 
         [HttpPost]
@@ -140,7 +142,7 @@ namespace AL.RMZ.Controllers
                     return BadRequest(ex.Message);
                 }
             }
-            return BadRequest();
+            return BadRequest(ModelState);
         }
     }
 }

@@ -354,7 +354,7 @@ namespace AL.RMZ.Test.Controller
             var updatedData = await controller.UpdateFloor(floorId, Floor);
 
             //Assert  
-            Assert.IsType<BadRequestResult>(updatedData);
+            Assert.IsType<BadRequestObjectResult>(updatedData);
         }
 
         #endregion

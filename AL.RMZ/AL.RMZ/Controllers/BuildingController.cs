@@ -1,6 +1,7 @@
 ﻿using AL.RMZ.Data;
 using AL.RMZ.Models;
 using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,8 +12,10 @@ using System.Threading.Tasks;
 
 namespace AL.RMZ.Controllers
 {
+
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BuildingController : Controller
     {
         private readonly IBuildingRepository _buildingRepository;
@@ -110,14 +113,14 @@ namespace AL.RMZ.Controllers
                     else
                         return BadRequest();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
 
-                    return BadRequest();
+                    return BadRequest(ex.Message);
                 }
 
             }
-            return BadRequest();
+            return BadRequest(ModelState);
         }
 
         [HttpPost]
@@ -141,7 +144,7 @@ namespace AL.RMZ.Controllers
                     return BadRequest(ex.Message);
                 }
             }
-            return BadRequest();
+            return BadRequest(ModelState);
         }
     }
 }

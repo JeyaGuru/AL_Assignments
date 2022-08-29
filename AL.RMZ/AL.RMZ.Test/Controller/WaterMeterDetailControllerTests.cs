@@ -494,7 +494,7 @@ namespace AL.RMZ.Test.Controller
             var updatedData = await controller.UpdateWaterMeterDetail(WaterMeterDetailId, WaterMeterDetail);
 
             //Assert  
-            Assert.IsType<BadRequestResult>(updatedData);
+            Assert.IsType<BadRequestObjectResult>(updatedData);
         }
 
         #endregion

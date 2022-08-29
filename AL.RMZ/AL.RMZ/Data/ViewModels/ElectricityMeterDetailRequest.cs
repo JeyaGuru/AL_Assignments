@@ -9,11 +9,16 @@ namespace AL.RMZ.Models
 {
     public class ElectricityMeterDetailRequest
     {
+        [Required]
         public int ElectricityMeterId { get; set; }
+
+        [Required]
         public DateTime ReadingDate { get; set; }
 
+        [Required]
         public int StartReading { get; set; }
 
+        [Required]
         public int EndReading { get; set; }
         
     }

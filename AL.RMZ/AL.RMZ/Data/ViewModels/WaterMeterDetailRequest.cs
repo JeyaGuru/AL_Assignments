@@ -9,11 +9,16 @@ namespace AL.RMZ.Models
 {
     public class WaterMeterDetailRequest
     {
+        [Required]
         public int WaterMeterId { get; set; }
+
+        [Required]
         public DateTime ReadingDate { get; set; }
 
+        [Required]
         public int StartReading { get; set; }
 
-        public int EndReading { get; set; }     
+        [Required]
+        public int EndReading { get; set; }
     }
 }

@@ -12,7 +12,8 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-       "launchUrl": "swagger",
+      // "launchUrl": "api/auth/Login",
+      "launchUrl": "swagger",
       //"launchUrl": "api/City",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -21,9 +22,9 @@
     "AL.RMZ": {
       "commandName": "Project",
       "launchBrowser": true,
-       "launchUrl": "swagger",
-     // "launchUrl": "api/City",
-      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "launchUrl": "swagger",
+      // "launchUrl": "api/City",
+      "applicationUrl": "https://localhost:5001;http://localhost:5000;",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

@@ -59,7 +59,7 @@ namespace AL.RMZ.Test.Controller
             var data = await buildingController.AddBuilding(building);
 
             //assert
-            Assert.IsType<BadRequestResult>(data);
+            Assert.IsType<BadRequestObjectResult>(data);
         }
 
         [Fact]
@@ -358,7 +358,7 @@ namespace AL.RMZ.Test.Controller
             var data = await controller.UpdateBuilding(buildingId, Building);
 
             //Assert  
-            Assert.IsType<BadRequestResult>(data);
+            Assert.IsType<BadRequestObjectResult>(data);
         }
 
         #endregion

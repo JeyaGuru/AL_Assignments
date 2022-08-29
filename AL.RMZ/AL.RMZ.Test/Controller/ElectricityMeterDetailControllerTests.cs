@@ -495,7 +495,7 @@ namespace AL.RMZ.Test.Controller
             var updatedData = await controller.UpdateElectricityMeterDetail(ElectricityMeterDetailId, ElectricityMeterDetail);
 
             //Assert  
-            Assert.IsType<BadRequestResult>(updatedData);
+            Assert.IsType<BadRequestObjectResult>(updatedData);
         }
 
         #endregion

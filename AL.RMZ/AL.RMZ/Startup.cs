@@ -1,5 +1,9 @@
 using AL.RMZ.Repository;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -15,6 +19,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AL.RMZ
@@ -34,19 +42,51 @@ namespace AL.RMZ
         {
             services.AddControllers();
 
-            //services.AddCors(options =>
-            //{
-            //    options.AddDefaultPolicy(
-            //                      policy =>
-            //                      {
-            //                          policy.WithOrigins("*");
-            //                      });
-            //});
-            services.AddCors(option => option.AddPolicy("MyPolicy", builder =>
+            services.AddCors(options =>
             {
-                builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-
-            }));
+                options.AddDefaultPolicy(
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod();
+                    });
+            });
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = "GitHub";
+            })
+               .AddCookie()
+               .AddOAuth("GitHub", options =>
+               {
+                   options.ClientId = Configuration["GitHub:ClientId"];
+                   options.ClientSecret = Configuration["GitHub:ClientSecret"];
+                   options.CallbackPath = new PathString("/github-oauth");
+                   options.AuthorizationEndpoint = "https://github.com/login/oauth/authorize";
+                   options.TokenEndpoint = "https://github.com/login/oauth/access_token";
+                   options.UserInformationEndpoint = "https://api.github.com/user";
+                   options.SaveTokens = true;
+                   options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+                   options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+                   options.ClaimActions.MapJsonKey("urn:github:login", "login");
+                   options.ClaimActions.MapJsonKey("urn:github:url", "html_url");
+                   options.ClaimActions.MapJsonKey("urn:github:avatar", "avatar_url");
+                   options.Events = new OAuthEvents
+                   {
+                       OnCreatingTicket = async context =>
+                       {
+                           var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                           request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                           request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+                           var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                           response.EnsureSuccessStatusCode();
+                           var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                           context.RunClaimActions(json.RootElement);
+                       }
+                   };
+               });
 
             services.AddSwaggerGen(options =>
             {
@@ -60,7 +100,7 @@ namespace AL.RMZ
 
             // services.AddDbContext<RMZ.Data.RMZAPIDbContext>(options => options.UseInMemoryDatabase("RMZDb"));
             services.AddDbContext<RMZ.Data.RMZAPIDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("RMZAPIConnectionString")));
-            
+
             services.AddScoped<ICityRepository, CityRepository>();
             services.AddScoped<IFacilityRepository, FacilityRepository>();
             services.AddScoped<IBuildingRepository, BuildingRepository>();
@@ -75,17 +115,19 @@ namespace AL.RMZ
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
+            app.UseDeveloperExceptionPage();
+
+            app.UseCors();
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
-            app.UseCors();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

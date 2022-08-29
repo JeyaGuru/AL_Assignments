@@ -271,7 +271,7 @@ namespace AL.RMZ.Test.Controller
             var data = await controller.UpdateCity(cityId, City);
 
             //Assert  
-            Assert.IsType<BadRequestResult>(data);
+            Assert.IsType<BadRequestObjectResult>(data);
         }
 
         #endregion
