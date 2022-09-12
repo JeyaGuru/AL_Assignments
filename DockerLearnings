@@ -1,6 +1,6 @@
 1. Docker?
 	  Docker is a toolkit, allows developers to package the application, its dependency & configurations into standardised unit. 
-	  Then we can run this unit in our docker installed system & easily distributed in to all environments like QA, Dev, Staging & production.
+	  Then we can run this unit into docker installed system & easily distributed in to all environments like QA, Dev, Staging & production.
 
 2. Do you know the difference between Docker file and Docker Compose?
     Docker file :  it consists set of instructions to build an image.
