@@ -4,9 +4,9 @@
 
 2. Do you know the difference between Docker file and Docker Compose?
     Docker file :  it consists set of instructions to build an image.
-                      docker build
+                     (cmd: docker build)
     Docker compose :  it consists set of instructions to run those image.
-                     docker–compose up 
+                     (cmd: docker–compose up) 
 
 3. Image repository?
   	We can store images into private / public repository in the dockerhub cloud registry
