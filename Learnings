@@ -16,3 +16,39 @@
   b. We can do Independent deployment for each service.
   c. We can easily combine all the endpoints with the help of api gateway.
   d. It will give best performance since each services are run in independent manner.
+
+
+Monolithic Vs Microservices?
+
+1.1 Monolithic?
+a.	All components are part of single unit
+b.	App must be written in 1 tech stack
+c.	Team need to be careful to not affect others functionality
+
+1.2 Challenges?
+a.	Application is too large & complex
+b.	We need to scale up entire application, instead of specific service
+c.	Difficulty if each service need different version
+d.	Release process take more time 
+e.	On every change we need to test entire application.
+f.	Bug in any module may down the entire applications
+2.1 What are micro services?
+Split application into smaller units
+Split based on business functionalities
+Self contained & independent
+Service can be built & deployed separately 
+Each micro services has its own version
+Each team can develop the service independently
+Each team can choose their own tech stack	
+
+2.2 Challenges?
+a.	Configure the communication between services
+b.	More difficult to monitor the multiple instances of each service distributed across the servers
+ We can solve challenges using kubernetes 
+2.3 Communication between each Micro service?
+1)	Via api calls
+2)	Via broker message(Rabbit MQ)
+3)	Via service Mesh
+2.4 Mono repo Vs Poly repo?
+Mono repo: One repository with separate directory for each service.
+Poly repo: separate repository for each service
